@@ -25,27 +25,26 @@
 ; écrire le code ici		
 
 DFT_ModuleAuCarre proc 
-	push {r4, r5, r6, r7, r8, r9, r10, r11}
+	push {r4-r11}
 	mov r2, r0
-	mov r6, #0
-	mov r4, #0
-	mov r5, #64
-	mov r11, #0
+	mov r6, #0				;valeur qui s'incrémente réelle
+	mov r4, #0				;n
+	mov r5, #64				;M=64
+	mov r11, #0				;valeur qui s'incrémente imaginaire
 	ldr r8, =TabCos
 	ldr r9, =TabSin
 boucle 
-	mov r3, r1
 	cmp r5, r4
 	ble fin
-	mul r3, r4
+	mul r3, r1, r4
+	and r3, #63
 	ldrsh r7, [r8, r3, lsl #1]  ; cos 1.15
-	asr r7, #3						;1.12
 	ldrsh r10, [r9, r3, lsl #1] ; sin 1.15
-	asr r10, #3					;4.12
 	ldrsh r9, [r2, r4, lsl #1]	;x(n) 4.12
-	asr r9, #3						;4.9
-	mul r7, r9					;5.21
-	mul r10, r9					;5.21
+	mul r7, r9					;5.27
+	mul r10, r9					;5.27
+	asr r7, #6					;5.21
+	asr r10, #6					;5.21
 	add r11, r10		;x(k) imaginaire 32 bits 11.21
 	add r6, r7			;x(k) réel       32 bits 11.21
 	add r4, #1
@@ -53,9 +52,10 @@ boucle
 	
 fin
 
-	smull r0, r1, r11, r11   ;22.42
-	smlal r0, r1, r6, r6	;22.42
-	pop {r4, r5, r6, r7, r8, r9, r10, r11}
+	smull r1, r0, r11, r11   ;22.42
+	smlal r1, r0, r6, r6	;22.42
+	lsr r0, #10
+	pop {r4-r11}
 	bx lr 
 	endp
 
